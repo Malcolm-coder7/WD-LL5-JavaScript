@@ -3,14 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Save the Water!!!</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  
-    
+    <!-- Main Menu Screen -->
+    <div id="main-menu">
+        <h1>Save the Water!!!</h1>
+        <button id="btn-new-game">New Game</button>
+        <button id="btn-continue">Continue</button>
+        <button id="btn-settings">Settings</button>
+    </div>
 
-<!-- STEP 0:
-Make sure your script.js file is linked right here.
-If your JavaScript is not working, check this first! -->
+    <!-- Level Select Screen -->
+    <div id="level-select" style="display:none">
+        <h2>Select Level</h2>
+        <div id="level-buttons">
+            <button class="level-btn" data-level="1">Village A</button>
+            <button class="level-btn" data-level="2" disabled>Town B</button>
+            <button class="level-btn" data-level="3" disabled>City C</button>
+            <button class="level-btn" data-level="4" disabled>Hamlet D</button>
+        </div>
+        <button id="btn-back-menu">Back to Menu</button>
+    </div>
+
+    <!-- Puzzle Board Screen -->
+    <div id="puzzle-board" style="display:none">
+        <h2>Puzzle Board</h2>
+        <div id="board-container">[Match-3 Board Here]</div>
+        <div>Moves Left: <span id="moves-left">20</span></div>
+        <div>Score: <span id="score">0</span></div>
+        <div>Goal: <span id="goal">Collect 10 water drops</span></div>
+        <button id="btn-back-menu">Back to Menu</button>
+    </div>
+
+    <!-- Level Complete Screen -->
+    <div id="level-complete" style="display:none">
+        <h2>Level Complete!</h2>
+        <button id="btn-next-level">Next Level</button>
+        <button id="btn-back-menu">Back to Menu</button>
+    </div>
+
+    <!-- Level Failed Screen -->
+    <div id="level-failed" style="display:none">
+        <h2>Level Failed</h2>
+        <button id="btn-retry">Retry</button>
+        <button id="btn-back-menu">Back to Menu</button>
+    </div>
+
+    <script src="script.js"></script>
 </body>
 </html>
