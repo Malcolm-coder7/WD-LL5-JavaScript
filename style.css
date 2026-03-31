@@ -1,25 +1,33 @@
+@import url('https://fonts.googleapis.com/css?family=Montserrat:400,700&display=swap');
+
 body {
-    font-family: 'Segoe UI', Arial, sans-serif;
+    font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
     background: #e0f7fa;
     margin: 0;
     padding: 0;
+    min-height: 100vh;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    justify-content: flex-start;
     align-items: center;
-    height: 100vh;
 }
-#main-menu {
+#main-menu, #difficulty-select, #level-select, #puzzle-board, #level-complete, #level-failed {
     background: #fff;
     border-radius: 16px;
     box-shadow: 0 4px 24px rgba(0,0,0,0.08);
     padding: 40px 32px;
     text-align: center;
+    margin-top: 40px;
+    min-width: 340px;
 }
-#main-menu h1 {
+#main-menu h1, #difficulty-select h2, #level-select h2, #puzzle-board h2, #level-complete h2, #level-failed h2 {
     color: #0288d1;
     margin-bottom: 32px;
+    font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+    font-weight: 700;
+    letter-spacing: 1px;
 }
-#main-menu button {
+#main-menu button, #difficulty-select button, #level-select button, #puzzle-board button, #level-complete button, #level-failed button {
     display: block;
     width: 200px;
     margin: 16px auto;
@@ -30,10 +38,73 @@ body {
     background: #4fc3f7;
     color: #fff;
     cursor: pointer;
-    transition: background 0.2s;
+    font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+    font-weight: 600;
+    transition: background 0.2s, transform 0.1s;
 }
-#main-menu button:hover {
+#main-menu button:hover, #difficulty-select button:hover, #level-select button:hover, #puzzle-board button:hover, #level-complete button:hover, #level-failed button:hover {
     background: #0288d1;
+    transform: scale(1.04);
+}
+#charity-footer {
+    width: 100%;
+    background: #fffde7;
+    color: #333;
+    text-align: center;
+    padding: 18px 0 12px 0;
+    font-size: 1.1rem;
+    font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+    border-top: 2px solid #ffe082;
+    margin-top: 40px;
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    z-index: 100;
+}
+#charity-footer a {
+    color: #0288d1;
+    text-decoration: underline;
+    font-weight: 600;
+    margin: 0 4px;
+}
+#charity-footer a:hover {
+    color: #ffb300;
+}
+#win-message {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 2.5rem;
+    color: #0288d1;
+    background: rgba(255,255,255,0.95);
+    border-radius: 16px;
+    padding: 32px 48px;
+    font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+    font-weight: 700;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+    z-index: 1000;
+    border: 3px solid #4fc3f7;
+    letter-spacing: 1px;
+    display: none;
+}
+#milestone-message {
+    position: absolute;
+    left: 50%;
+    top: 20%;
+    transform: translate(-50%, -50%);
+    font-size: 1.5rem;
+    color: #fff;
+    background: #0288d1;
+    border-radius: 10px;
+    padding: 16px 32px;
+    font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+    font-weight: 600;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+    z-index: 1001;
+    border: 2px solid #4fc3f7;
+    letter-spacing: 1px;
+    display: none;
 }
 
 /* Match-3 Board Styles */
@@ -66,4 +137,24 @@ body {
 }
 .match3-board td.grass {
     background: #e8f5e9;
+}
+
+#puzzle-board {
+    position: relative;
+    overflow: visible;
+    z-index: 1;
+}
+
+#game-overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: auto;
+    z-index: 10;
+}
+#game-overlay {
+    display: block;
+    background: transparent;
 }

@@ -7,12 +7,22 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
     <!-- Main Menu Screen -->
     <div id="main-menu">
         <h1>Save the Water!!!</h1>
         <button id="btn-new-game">New Game</button>
         <button id="btn-continue">Continue</button>
         <button id="btn-settings">Settings</button>
+    </div>
+
+    <!-- Difficulty Selection Screen -->
+    <div id="difficulty-select" style="display:none">
+        <h2>Select Difficulty</h2>
+        <button class="difficulty-btn" data-difficulty="easy">Easy</button>
+        <button class="difficulty-btn" data-difficulty="normal">Normal</button>
+        <button class="difficulty-btn" data-difficulty="hard">Hard</button>
+        <button id="btn-back-menu-difficulty">Back to Menu</button>
     </div>
 
     <!-- Level Select Screen -->
@@ -35,6 +45,12 @@
         <div>Score: <span id="score">0</span></div>
         <div>Goal: <span id="goal">Collect 10 water drops</span></div>
         <button id="btn-back-menu">Back to Menu</button>
+            <canvas id="game-overlay" style="position:absolute; left:0; top:0; pointer-events:none;"></canvas>
+            <div id="board-container" style="position:relative;">[Match-3 Board Here]
+                <canvas id="game-overlay"></canvas>
+            </div>
+        <!-- Canvas overlay for ripples and win message -->
+        <canvas id="game-overlay" style="position:absolute; left:0; top:0; pointer-events:none;"></canvas>
     </div>
 
     <!-- Level Complete Screen -->
@@ -51,6 +67,12 @@
         <button id="btn-back-menu">Back to Menu</button>
     </div>
 
+    <footer id="charity-footer">
+        <span>Inspired by </span>
+        <a href="https://www.charitywater.org/" target="_blank" rel="noopener">charity: water</a>
+        <span> | </span>
+        <a href="https://www.charitywater.org/donate" target="_blank" rel="noopener">Donate</a>
+    </footer>
     <script src="script.js"></script>
 </body>
 </html>

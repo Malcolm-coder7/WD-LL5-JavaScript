@@ -11,6 +11,25 @@ document.addEventListener('DOMContentLoaded', function() {
         levelFailed: document.getElementById('level-failed')
     };
 
+    // Overlay canvas for ripples and win message
+    const overlay = document.getElementById('game-overlay');
+    let overlayCtx = overlay.getContext('2d');
+    let ripples = [];
+    let winState = false;
+
+    function resizeOverlay() {
+        // Match overlay size to puzzle board
+        const boardRect = screens.puzzleBoard.getBoundingClientRect();
+        overlay.width = boardRect.width;
+        overlay.height = boardRect.height;
+        overlay.style.width = boardRect.width + 'px';
+        overlay.style.height = boardRect.height + 'px';
+        overlay.style.left = boardRect.left + 'px';
+        overlay.style.top = boardRect.top + 'px';
+    }
+
+    window.addEventListener('resize', resizeOverlay);
+
     function showScreen(screen) {
         Object.values(screens).forEach(el => {
             if (el) el.style.display = 'none';
@@ -79,6 +98,8 @@ document.addEventListener('DOMContentLoaded', function() {
             table.appendChild(tr);
         }
         boardContainer.appendChild(table);
+        // After rendering, update overlay size
+        setTimeout(resizeOverlay, 0);
     }
 
     function handleTileClick(r, c) {
@@ -104,6 +125,37 @@ document.addEventListener('DOMContentLoaded', function() {
                 selected = { row: r, col: c };
                 renderBoard();
             }
+        }
+        // No ripple here, handled by canvas click
+    }
+
+    // --- Ripple Effect ---
+    overlay.addEventListener('click', function(e) {
+        if (screens.puzzleBoard.style.display === 'none') return;
+        const rect = overlay.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        ripples.push({ x, y, radius: 0, alpha: 1 });
+    });
+
+    function updateRipples() {
+        for (let ripple of ripples) {
+            ripple.radius += 3;
+            ripple.alpha *= 0.94;
+        }
+        ripples = ripples.filter(r => r.alpha > 0.05);
+    }
+
+    function drawRipples(ctx) {
+        for (let ripple of ripples) {
+            ctx.save();
+            ctx.globalAlpha = ripple.alpha;
+            ctx.beginPath();
+            ctx.arc(ripple.x, ripple.y, ripple.radius, 0, 2 * Math.PI);
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = '#4fc3f7';
+            ctx.stroke();
+            ctx.restore();
         }
     }
 
@@ -224,9 +276,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function checkEnd() {
         if (waterCollected >= goal) {
+            winState = true;
             setTimeout(() => {
                 showScreen('levelComplete');
-            }, 500);
+                winState = false;
+            }, 1200);
         } else if (movesLeft <= 0) {
             setTimeout(() => {
                 showScreen('levelFailed');
@@ -241,6 +295,9 @@ document.addEventListener('DOMContentLoaded', function() {
         createBoard();
         updateUI();
         renderBoard();
+        winState = false;
+        ripples = [];
+        resizeOverlay();
     }
 
     // --- Navigation and Button Handlers ---
@@ -305,6 +362,34 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     observer.observe(levelSelectScreen, { attributes: true, attributeFilter: ['style'] });
 
+    // --- Main Game Loop for Overlay ---
+    function gameLoop() {
+        if (screens.puzzleBoard.style.display !== 'none') {
+            overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
+            updateRipples();
+            drawRipples(overlayCtx);
+            if (winState) {
+                overlayCtx.save();
+                overlayCtx.globalAlpha = 1;
+                overlayCtx.font = 'bold 3rem Segoe UI, Arial, sans-serif';
+                overlayCtx.fillStyle = '#0288d1';
+                overlayCtx.textAlign = 'center';
+                overlayCtx.textBaseline = 'middle';
+                overlayCtx.strokeStyle = '#fff';
+                overlayCtx.lineWidth = 8;
+                const msg = 'Good job, you win!';
+                const x = overlay.width / 2;
+                const y = overlay.height / 2;
+                overlayCtx.strokeText(msg, x, y);
+                overlayCtx.fillText(msg, x, y);
+                overlayCtx.restore();
+            }
+        }
+        requestAnimationFrame(gameLoop);
+    }
+
     // Start at main menu
     showScreen('mainMenu');
+    setTimeout(resizeOverlay, 0);
+    gameLoop();
 });
