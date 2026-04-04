@@ -9,7 +9,7 @@
 <body>
 
     <!-- Main Menu Screen -->
-    <div id="main-menu">
+    <div id="main-menu" class="screen">
         <h1>Save the Water!!!</h1>
         <button id="btn-new-game">New Game</button>
         <button id="btn-continue">Continue</button>
@@ -17,7 +17,7 @@
     </div>
 
     <!-- Difficulty Selection Screen -->
-    <div id="difficulty-select" style="display:none">
+    <div id="difficulty-select" class="screen" style="display:none">
         <h2>Select Difficulty</h2>
         <button class="difficulty-btn" data-difficulty="easy">Easy</button>
         <button class="difficulty-btn" data-difficulty="normal">Normal</button>
@@ -26,7 +26,7 @@
     </div>
 
     <!-- Level Select Screen -->
-    <div id="level-select" style="display:none">
+    <div id="level-select" class="screen" style="display:none">
         <h2>Select Level</h2>
         <div id="level-buttons">
             <button class="level-btn" data-level="1">Village A</button>
@@ -34,38 +34,39 @@
             <button class="level-btn" data-level="3" disabled>City C</button>
             <button class="level-btn" data-level="4" disabled>Hamlet D</button>
         </div>
-        <button id="btn-back-menu">Back to Menu</button>
+        <button class="btn-back-menu">Back to Menu</button>
     </div>
 
     <!-- Puzzle Board Screen -->
-    <div id="puzzle-board" style="display:none">
+    <div id="puzzle-board" class="screen" style="display:none">
         <h2>Puzzle Board</h2>
-        <div id="board-container">[Match-3 Board Here]</div>
-        <div>Moves Left: <span id="moves-left">20</span></div>
-        <div>Score: <span id="score">0</span></div>
-        <div>Goal: <span id="goal">Collect 10 water drops</span></div>
-        <button id="btn-back-menu">Back to Menu</button>
-            <canvas id="game-overlay" style="position:absolute; left:0; top:0; pointer-events:none;"></canvas>
-            <div id="board-container" style="position:relative;">[Match-3 Board Here]
-                <canvas id="game-overlay"></canvas>
-            </div>
-        <!-- Canvas overlay for ripples and win message -->
-        <canvas id="game-overlay" style="position:absolute; left:0; top:0; pointer-events:none;"></canvas>
+        <div id="score-bar">
+            <span>Moves Left: <span id="moves-left">20</span></span>
+            <span>Score: <span id="score">0</span></span>
+            <span id="goal">Collect 10 water drops</span>
+        </div>
+        <div id="board-container"></div>
+        <canvas id="game-overlay"></canvas>
+        <button class="btn-back-menu">Back to Menu</button>
     </div>
 
     <!-- Level Complete Screen -->
-    <div id="level-complete" style="display:none">
+    <div id="level-complete" class="screen" style="display:none">
         <h2>Level Complete!</h2>
         <button id="btn-next-level">Next Level</button>
-        <button id="btn-back-menu">Back to Menu</button>
+        <button class="btn-back-menu">Back to Menu</button>
     </div>
 
     <!-- Level Failed Screen -->
-    <div id="level-failed" style="display:none">
+    <div id="level-failed" class="screen" style="display:none">
         <h2>Level Failed</h2>
         <button id="btn-retry">Retry</button>
-        <button id="btn-back-menu">Back to Menu</button>
+        <button class="btn-back-menu">Back to Menu</button>
     </div>
+
+    <!-- Overlay for win and milestone messages -->
+    <div id="win-message" style="display:none"></div>
+    <div id="milestone-message" style="display:none"></div>
 
     <footer id="charity-footer">
         <span>Inspired by </span>
