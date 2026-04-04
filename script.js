@@ -2,6 +2,36 @@
 // Handles screen navigation and basic game logic
 
 document.addEventListener('DOMContentLoaded', function() {
+    // --- Sound Effects ---
+    const sounds = {
+        click: new Audio('https://cdn.pixabay.com/audio/2022/07/26/audio_124bfae7e2.mp3'), // water click
+        collect: new Audio('https://cdn.pixabay.com/audio/2022/07/26/audio_124bfae7e2.mp3'), // can use same or different
+        win: new Audio('https://cdn.pixabay.com/audio/2022/07/26/audio_124bfae7e2.mp3')
+    };
+
+    // --- Difficulty Settings ---
+    const DIFFICULTY_SETTINGS = {
+        easy:   { time: 60, goal: 10 },
+        normal: { time: 40, goal: 20 },
+        hard:   { time: 25, goal: 30 }
+    };
+    let currentDifficulty = 'easy';
+    let timeLeft = 60;
+    let timerInterval = null;
+
+    // --- Milestone Tracking ---
+    const milestones = [10, 20, 50];
+    let reachedMilestones = [];
+
+    // --- DOM Elements for messages ---
+    const winMsgDiv = document.createElement('div');
+    winMsgDiv.id = 'win-message';
+    winMsgDiv.textContent = 'Good job, you win!';
+    document.body.appendChild(winMsgDiv);
+
+    const milestoneMsgDiv = document.createElement('div');
+    milestoneMsgDiv.id = 'milestone-message';
+    document.body.appendChild(milestoneMsgDiv);
     // Screen elements
     const screens = {
         mainMenu: document.getElementById('main-menu'),
@@ -131,12 +161,42 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Ripple Effect ---
     overlay.addEventListener('click', function(e) {
-        if (screens.puzzleBoard.style.display === 'none') return;
+        if (screens.puzzleBoard.style.display === 'none' || !gameActive) return;
         const rect = overlay.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
         ripples.push({ x, y, radius: 0, alpha: 1 });
+        sounds.click.currentTime = 0; sounds.click.play();
+        // Check if a drop was clicked (simulate with tile size)
+        const tileW = overlay.width / COLS;
+        const tileH = overlay.height / ROWS;
+        const col = Math.floor(x / tileW);
+        const row = Math.floor(y / tileH);
+        if (board[row] && board[row][col] === 'water') {
+            board[row][col] = 'grass';
+            waterCollected++;
+            score += 10;
+            sounds.collect.currentTime = 0; sounds.collect.play();
+            checkMilestones();
+            updateUI();
+            renderBoard();
+            checkEnd();
+        }
     });
+    // --- Milestone Message ---
+    function checkMilestones() {
+        for (let m of milestones) {
+            if (score >= m && !reachedMilestones.includes(m)) {
+                reachedMilestones.push(m);
+                showMilestoneMessage(m);
+            }
+        }
+    }
+    function showMilestoneMessage(m) {
+        milestoneMsgDiv.textContent = `Milestone reached: ${m} points!`;
+        milestoneMsgDiv.style.display = 'block';
+        setTimeout(() => { milestoneMsgDiv.style.display = 'none'; }, 1800);
+    }
 
     function updateRipples() {
         for (let ripple of ripples) {
@@ -271,38 +331,71 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateUI() {
         movesLeftSpan.textContent = movesLeft;
         scoreSpan.textContent = score;
-        goalSpan.textContent = `Collect ${goal} water drops (${waterCollected}/${goal})`;
+        goalSpan.textContent = `Collect ${goal} water drops (${waterCollected}/${goal}) | Time: ${timeLeft}s`;
     }
 
     function checkEnd() {
         if (waterCollected >= goal) {
             winState = true;
+            gameActive = false;
+            sounds.win.currentTime = 0; sounds.win.play();
+            winMsgDiv.style.display = 'block';
             setTimeout(() => {
+                winMsgDiv.style.display = 'none';
                 showScreen('levelComplete');
                 winState = false;
-            }, 1200);
-        } else if (movesLeft <= 0) {
+            }, 1800);
+            clearInterval(timerInterval);
+        } else if (movesLeft <= 0 || timeLeft <= 0) {
+            gameActive = false;
             setTimeout(() => {
                 showScreen('levelFailed');
             }, 500);
+            clearInterval(timerInterval);
         }
     }
 
     function startPuzzleLevel() {
+        // Set difficulty
+        let settings = DIFFICULTY_SETTINGS[currentDifficulty];
         movesLeft = 20;
         score = 0;
         waterCollected = 0;
+        goal = settings.goal;
+        timeLeft = settings.time;
+        reachedMilestones = [];
         createBoard();
         updateUI();
         renderBoard();
         winState = false;
         ripples = [];
         resizeOverlay();
+        gameActive = true;
+        // Timer
+        if (timerInterval) clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            if (!gameActive) return;
+            timeLeft--;
+            updateUI();
+            if (timeLeft <= 0) checkEnd();
+        }, 1000);
     }
 
     // --- Navigation and Button Handlers ---
     document.getElementById('btn-new-game').onclick = function() {
-        showScreen('levelSelect');
+        showScreen('difficulty-select');
+    };
+
+    // Difficulty selection
+    document.querySelectorAll('.difficulty-btn').forEach(btn => {
+        btn.onclick = function() {
+            currentDifficulty = btn.dataset.difficulty;
+            showScreen('puzzleBoard');
+            startPuzzleLevel();
+        };
+    });
+    document.getElementById('btn-back-menu-difficulty').onclick = function() {
+        showScreen('mainMenu');
     };
     document.getElementById('btn-continue').onclick = function() {
         showScreen('levelSelect');
