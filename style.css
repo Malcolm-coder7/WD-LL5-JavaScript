@@ -16,7 +16,25 @@
 }
 .water-interactive.disappearing {
     pointer-events: none !important;
-    z-index: 2;
+    z-index: 10;
+    position: relative;
+    animation: water-disappear 0.4s cubic-bezier(.68,-0.55,.27,1.55) forwards;
+    filter: blur(2px);
+    opacity: 0;
+    transform: scale(0.4) translateY(-18px);
+    transition: none;
+}
+@keyframes water-disappear {
+    0% {
+        opacity: 1;
+        filter: none;
+        transform: scale(1) translateY(0);
+    }
+    100% {
+        opacity: 0;
+        filter: blur(2px);
+        transform: scale(0.4) translateY(-18px);
+    }
 }
 @import url('https://fonts.googleapis.com/css?family=Montserrat:400,700&display=swap');
 
@@ -26,10 +44,11 @@ body {
     margin: 0;
     padding: 0;
     min-height: 100vh;
+    min-width: 100vw;
     display: flex;
     flex-direction: column;
-    justify-content: flex-start;
     align-items: center;
+    justify-content: center;
     overflow-x: hidden;
 }
 #main-menu, #difficulty-select, #level-select, #puzzle-board, #level-complete, #level-failed {
@@ -208,59 +227,89 @@ body {
     display: none;
     animation: pop-in 0.7s cubic-bezier(.68,-0.55,.27,1.55);
 }
-#puzzle-board .score-bar {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    margin: 18px 0 10px 0;
-    font-size: 1.1rem;
-    color: #0288d1;
-    font-weight: 600;
+/* --- Board Layout and Responsiveness (deduplicated) --- */
+#puzzle-board {
+  width: 100vw;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
 }
 
-/* Match-3 Board Styles */
+#game-wrapper {
+  width: 600px;
+  height: 600px;
+  max-width: 98vw;
+  max-height: 98vh;
+  position: relative;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 #board-container {
-    width: 320px;
-    height: 320px;
-    position: relative;
-    margin: 0 auto;
-    z-index: 1;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
 .match3-board {
-    border-collapse: collapse;
-    width: 100%;
-    height: 100%;
-    table-layout: fixed;
-    background: #e3f2fd;
-    box-shadow: 0 2px 16px rgba(33,150,243,0.12);
+  border-collapse: collapse;
+  width: 100%;
+  height: 100%;
+  table-layout: fixed;
+  background: #e3f2fd;
+  border-radius: 16px;
+  overflow: hidden;
+  margin: 0;
+  box-shadow: 0 4px 24px rgba(33,150,243,0.08);
 }
+
 .match3-board td {
-    width: 20%;
-    height: 20%;
-    text-align: center;
-    font-size: 2em;
-    vertical-align: middle;
-    border: 2px solid #90caf9;
-    background: #fff;
-    cursor: pointer;
-    transition: background 0.2s, transform 0.2s;
-    user-select: none;
-    box-shadow: 0 2px 8px rgba(33,150,243,0.07);
-}
-.tile.water {
-    background: #b3e5fc;
-}
-.tile.grass {
-    background: #c8e6c9;
+  width: 20%;
+  height: 20%;
+  text-align: center;
+  font-size: 3rem;
+  vertical-align: middle;
+  border: 2px solid #90caf9;
+  background: #fff;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+  user-select: none;
+  box-shadow: 0 2px 8px rgba(33,150,243,0.07);
 }
 
 #game-overlay {
-    pointer-events: none;
-    background: transparent !important;
-    position: absolute;
-    left: 0; top: 0;
-    z-index: 2;
+  pointer-events: none;
+  background: transparent !important;
+  position: absolute;
+  left: 0; top: 0;
+  z-index: 2;
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 18px;
 }
-#puzzle-board {
-    position: relative;
+
+@media (max-width: 700px), (max-height: 700px) {
+  #game-wrapper {
+    width: min(98vw, 98vh, 420px);
+    height: min(98vw, 98vh, 420px);
+  }
+  #game-overlay {
+    width: 100% !important;
+    height: 100% !important;
+  }
+  .match3-board td {
+    font-size: clamp(1.4rem, 8vw, 2.6rem);
+  }
 }

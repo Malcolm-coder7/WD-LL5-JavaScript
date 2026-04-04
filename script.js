@@ -29,6 +29,7 @@ const milestoneMsgDiv = document.getElementById('milestone-message');
 let gameActive = false;
 const screens = {
     mainMenu: document.getElementById('main-menu'),
+    difficultySelect: document.getElementById('difficulty-select'),
     levelSelect: document.getElementById('level-select'),
     puzzleBoard: document.getElementById('puzzle-board'),
     levelComplete: document.getElementById('level-complete'),
@@ -40,10 +41,11 @@ let ripples = [];
 let bubbles = [];
 let winState = false;
 
+// Use the new wrapper for overlay sizing
 function resizeOverlay() {
-    const boardDiv = document.getElementById('board-container');
-    if (!boardDiv) return;
-    const rect = boardDiv.getBoundingClientRect();
+    const wrapper = document.getElementById('game-wrapper');
+    if (!wrapper) return;
+    const rect = wrapper.getBoundingClientRect();
     overlay.width = rect.width;
     overlay.height = rect.height;
     const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
@@ -73,6 +75,7 @@ function showScreen(screen) {
         sounds.ui.play();
     }
     setTimeout(resizeOverlay, 0);
+    if (screen === 'levelSelect') updateLevelButtons();
 }
 
 // --- Match-3 Game Logic ---
@@ -99,20 +102,20 @@ function randomTile() {
 }
 
 function createBoard() {
-    board = [];
-    for (let r = 0; r < ROWS; r++) {
-        let row = [];
-        for (let c = 0; c < COLS; c++) {
-            row.push(randomTile());
+    do {
+        board = [];
+        for (let r = 0; r < ROWS; r++) {
+            let row = [];
+            for (let c = 0; c < COLS; c++) row.push(randomTile());
+            board.push(row);
         }
-        board.push(row);
-    }
-    // Remove any initial matches
-    while (findMatches().length > 0) {
-        removeMatches();
-        dropTiles();
-        fillBoard();
-    }
+        // Remove initial matches
+        while(findMatches().length > 0) {
+            removeMatches();
+            dropTiles();
+            fillBoard();
+        }
+    } while(findMatches().length > 0);
 }
 
 function findMatches() {
@@ -220,7 +223,7 @@ function adjustDifficulty() {
 function updateUI() {
     movesLeftSpan.textContent = movesLeft;
     scoreSpan.textContent = score;
-    goalSpan.textContent = `Collect ${goal} water drops (${waterCollected}/${goal}) | Time: ${timeLeft}s`;
+    goalSpan.textContent = `Collect ${goal} water drops (${waterCollected}/${goal}) | Time: ${Math.max(0, timeLeft)}s`;
 }
 
 function createBubble(e, td) {
@@ -246,243 +249,91 @@ function createBubble(e, td) {
     });
 }
 
-function renderBoard() {
-    if (!boardContainer) {
-        console.error('renderBoard: boardContainer not found!');
-        return;
-    }
-    boardContainer.innerHTML = '';
-    let table = document.createElement('table');
-    table.className = 'match3-board';
-    for (let r = 0; r < ROWS; r++) {
-        let tr = document.createElement('tr');
-        for (let c = 0; c < COLS; c++) {
-            let td = document.createElement('td');
-            td.className = 'tile ' + board[r][c];
-            td.dataset.row = r;
-            td.dataset.col = c;
-            td.textContent = TILE_TYPES.find(t => t.type === board[r][c]).emoji;
-            if (selected && selected.row === r && selected.col === c) {
-                td.classList.add('selected');
-            }
-            if (board[r][c] === 'water') {
-                td.classList.add('water-interactive');
-                td.onclick = function(e) {
-                    if (!gameActive || td.classList.contains('disappearing')) return;
-                    td.classList.add('splash');
-                    createBubble(e, td);
-                    td.classList.add('disappearing');
-                    td.style.pointerEvents = 'none';
-                    td.style.transition = 'transform 0.4s cubic-bezier(.68,-0.55,.27,1.55), opacity 0.4s, filter 0.4s';
-                    td.style.transform = 'scale(0.4) translateY(-18px)';
-                    td.style.opacity = '0';
-                    td.style.filter = 'blur(2px)';
-                    setTimeout(() => {
-                        if (board[r][c] === 'water') {
-                            board[r][c] = 'grass';
-                            waterCollected++;
-                            score += 10;
-                            sounds.collect.currentTime = 0; sounds.collect.play();
-                            checkMilestones();
-                            updateUI();
-                            td.className = 'tile grass';
-                            td.textContent = TILE_TYPES.find(t => t.type === 'grass').emoji;
-                            td.style = '';
-                            td.onclick = null;
-                            td.onmousedown = null;
-                            checkEnd();
-                        }
-                    }, 400);
-                };
-            } else {
-                td.onclick = function(e) {
-                    if (!gameActive) return;
-                    handleTileClick(r, c);
-                    td.classList.add('selected');
-                    setTimeout(() => td.classList.remove('selected'), 180);
-                    createBubble(e, td);
-                };
-            }
-            td.onmousedown = function(e) {
-                createBubble(e, td);
-            };
-            tr.appendChild(td);
+function renderBoard(){
+    if(!boardContainer) return;
+    boardContainer.innerHTML='';
+    const table=document.createElement('table');
+    table.className='match3-board';
+    for(let r=0;r<ROWS;r++){
+      const tr=document.createElement('tr');
+      for(let c=0;c<COLS;c++){
+        const td=document.createElement('td');
+        td.className='tile '+board[r][c];
+        td.dataset.row=r;
+        td.dataset.col=c;
+        td.textContent=TILE_TYPES.find(t=>t.type===board[r][c]).emoji;
+
+        if(selected && selected.row===r && selected.col===c) td.classList.add('selected');
+
+        if(board[r][c]==='water'){
+          td.classList.add('water-interactive');
+          td.onclick=function(e){
+            if(!gameActive||td.classList.contains('disappearing')) return;
+            td.classList.add('disappearing'); td.style.pointerEvents='none';
+            waterCollected++; score+=10; updateUI();
+            td.classList.add('splash'); createBubble(e,td); sounds.collect.currentTime=0; sounds.collect.play();
+            checkMilestones();
+            setTimeout(()=>{
+              board[r][c]='grass';
+              td.className='tile grass';
+              td.textContent=TILE_TYPES.find(t=>t.type==='grass').emoji;
+              td.onclick=null;
+              checkEnd(); updateUI();
+            },400);
+          }
+        } else {
+          td.onclick=function(e){ if(!gameActive) return; handleTileClick(r,c); }
         }
-        table.appendChild(tr);
+        td.onmousedown=function(e){ createBubble(e,td); }
+        tr.appendChild(td);
+      }
+      table.appendChild(tr);
     }
     boardContainer.appendChild(table);
-    setTimeout(resizeOverlay, 10);
-}
+    setTimeout(resizeOverlay,10);
+  }
 
-function handleTileClick(r, c) {
-    if (!selected) {
-        selected = { row: r, col: c };
-        renderBoard();
-    } else {
-        if ((Math.abs(selected.row - r) + Math.abs(selected.col - c)) === 1) {
-            swapTiles(selected.row, selected.col, r, c);
-            if (findMatches().length > 0) {
-                movesLeft = Math.max(0, movesLeft - 1);
-                processMatches();
-            } else {
-                swapTiles(selected.row, selected.col, r, c);
-            }
-            selected = null;
-            updateUI();
-            renderBoard();
-            checkEnd();
-        } else {
-            selected = { row: r, col: c };
-            renderBoard();
-        }
-    }
-}
+  function handleTileClick(r,c){
+    if(!gameActive) return;
+    if(!selected) { selected={row:r,col:c}; renderBoard(); return; }
+    if(Math.abs(selected.row-r)+Math.abs(selected.col-c)!==1){ selected={row:r,col:c}; renderBoard(); return; }
+    swapTiles(selected.row,selected.col,r,c);
+    if(findMatches().length>0){ movesLeft=Math.max(0,movesLeft-1); updateUI(); processMatches(); }
+    else swapTiles(selected.row,selected.col,r,c);
+    selected=null; updateUI(); renderBoard(); checkEnd();
+  }
 
-function swapTiles(r1, c1, r2, c2) {
-    let temp = board[r1][c1];
-    board[r1][c1] = board[r2][c2];
-    board[r2][c2] = temp;
-}
+  function showMilestoneMessage(m){
+    milestoneMsgDiv.textContent=`Milestone reached: ${m} points!`;
+    milestoneMsgDiv.style.display='block';
+    milestoneMsgDiv.style.pointerEvents='none';
+    milestoneMsgDiv.style.zIndex='1001';
+    setTimeout(()=>{ milestoneMsgDiv.style.display='none'; },1800);
+  }
 
-function checkMilestones() {
-    for (let m of milestones) {
-        if (score >= m && !reachedMilestones.includes(m)) {
-            reachedMilestones.push(m);
-            showMilestoneMessage(m);
-        }
-    }
-}
-function showMilestoneMessage(m) {
-    milestoneMsgDiv.textContent = `Milestone reached: ${m} points!`;
-    milestoneMsgDiv.style.display = 'block';
-    setTimeout(() => { milestoneMsgDiv.style.display = 'none'; }, 1800);
-}
+  function startPuzzleLevel(){
+    const settings=DIFFICULTY_SETTINGS[currentDifficulty]||DIFFICULTY_SETTINGS.easy;
+    timeLeft=settings.time; goal=settings.goal; movesLeft=20; score=0; waterCollected=0;
+    selected=null; reachedMilestones=[]; ripples=[]; bubbles=[]; winState=false; gameActive=true;
+    createBoard(); updateUI(); renderBoard();
+    if(timerInterval) clearInterval(timerInterval);
+    timerInterval=setInterval(()=>{ if(gameActive){ timeLeft=Math.max(0,timeLeft-1); updateUI(); if(timeLeft<=0) checkEnd(); } },1000);
+  }
 
-// --- Overlay Animation ---
-function updateRipples() {
-    for (let ripple of ripples) {
-        ripple.radius += 3;
-        ripple.alpha *= 0.94;
+  function checkEnd(){
+    if(winState) return;
+    if(waterCollected>=goal){
+      winState=true; gameActive=false; clearInterval(timerInterval);
+      winMsgDiv.textContent='Good job!'; winMsgDiv.style.display='block';
+      sounds.win.currentTime=0; sounds.win.play();
+      setTimeout(()=>{ winMsgDiv.style.display='none'; showScreen('levelComplete'); },1800);
+    } else if(movesLeft<=0||timeLeft<=0){
+      winState=true; gameActive=false; clearInterval(timerInterval); showScreen('levelFailed');
     }
-    ripples = ripples.filter(r => r.alpha > 0.05);
-}
-function drawRipples(ctx) {
-    for (let ripple of ripples) {
-        ctx.save();
-        ctx.globalAlpha = ripple.alpha;
-        ctx.beginPath();
-        ctx.arc(ripple.x, ripple.y, ripple.radius, 0, 2 * Math.PI);
-        ctx.lineWidth = 4;
-        ctx.strokeStyle = '#4fc3f7';
-        ctx.shadowColor = '#b3e5fc';
-        ctx.shadowBlur = 8;
-        ctx.stroke();
-        ctx.restore();
-    }
-}
-function updateBubbles() {
-    for (let bubble of bubbles) {
-        bubble.y += bubble.vy;
-        bubble.radius += 0.3;
-        bubble.alpha *= 0.96;
-    }
-    bubbles = bubbles.filter(b => b.alpha > 0.08);
-}
-function drawBubbles(ctx) {
-    for (let bubble of bubbles) {
-        ctx.save();
-        ctx.globalAlpha = bubble.alpha;
-        ctx.beginPath();
-        ctx.arc(bubble.x, bubble.y, bubble.radius, 0, 2 * Math.PI);
-        ctx.fillStyle = 'rgba(33, 150, 243, 0.18)';
-        ctx.strokeStyle = '#4fc3f7';
-        ctx.lineWidth = 2;
-        ctx.shadowColor = '#b3e5fc';
-        ctx.shadowBlur = 6;
-        ctx.fill();
-        ctx.stroke();
-        ctx.restore();
-    }
-}
-
-overlay.addEventListener('click', function(e) {
-    if (screens.puzzleBoard.style.display === 'none' || !gameActive) return;
-    const rect = overlay.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    ripples.push({ x, y, radius: 0, alpha: 1 });
-    sounds.click.currentTime = 0; sounds.click.play();
-});
-
-// --- Game Loop ---
-function gameLoop() {
-    let anyVisible = Object.values(screens).some(el => el && el.style.display !== 'none');
-    if (!anyVisible) {
-        showScreen('mainMenu');
-    }
-    if (screens.puzzleBoard.style.display !== 'none') {
-        overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
-        updateRipples();
-        drawRipples(overlayCtx);
-        updateBubbles();
-        drawBubbles(overlayCtx);
-    }
-    requestAnimationFrame(gameLoop);
-}
-
-function checkEnd() {
-    if (winState) return;
-    if (waterCollected >= goal) {
-        winState = true;
-        gameActive = false;
-        clearInterval(timerInterval);
-        winMsgDiv.textContent = 'Good job!';
-        winMsgDiv.style.display = 'block';
-        sounds.win.currentTime = 0; sounds.win.play();
-        setTimeout(() => {
-            winMsgDiv.style.display = 'none';
-            showScreen('levelComplete');
-        }, 1800);
-    } else if (movesLeft <= 0 || timeLeft <= 0) {
-        winState = true;
-        gameActive = false;
-        clearInterval(timerInterval);
-        showScreen('levelFailed');
-    }
-}
-
-function startPuzzleLevel() {
-    let settings = DIFFICULTY_SETTINGS[currentDifficulty] || DIFFICULTY_SETTINGS.easy;
-    timeLeft = settings.time;
-    goal = settings.goal;
-    movesLeft = 20;
-    score = 0;
-    waterCollected = 0;
-    selected = null;
-    reachedMilestones = [];
-    createBoard();
-    updateUI();
-    if (!boardContainer) {
-        console.error('boardContainer not found!');
-        return;
-    }
-    renderBoard();
-    winState = false;
-    ripples = [];
-    resizeOverlay();
-    gameActive = true;
-    if (timerInterval) clearInterval(timerInterval);
-    timerInterval = setInterval(() => {
-        if (!gameActive) return;
-        timeLeft--;
-        updateUI();
-        if (timeLeft <= 0) checkEnd();
-    }, 1000);
-}
-
+  }
 // --- Navigation and Button Handlers ---
 document.getElementById('btn-new-game').onclick = function() {
-    showScreen('difficulty-select');
+    showScreen('difficultySelect');
 };
 document.querySelectorAll('.difficulty-btn').forEach(btn => {
     btn.onclick = function() {
@@ -509,11 +360,6 @@ function updateLevelButtons() {
         btn.disabled = level > unlockedLevels;
     });
 }
-const origShowScreen = showScreen;
-showScreen = function(screen) {
-    origShowScreen(screen);
-    if (screen === 'levelSelect') updateLevelButtons();
-};
 document.querySelectorAll('.level-btn').forEach(btn => {
     btn.onclick = function() {
         currentLevel = parseInt(btn.dataset.level);
